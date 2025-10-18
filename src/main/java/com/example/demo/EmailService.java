@@ -1,21 +1,26 @@
 package com.example.demo;
 
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private MailSender mailSender;
+    @Value("${SENDGRID_API_KEY}")
+    private String apiKey;
 
     public void sendSubmission(TestSubmission submission) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo("adarshkeste153@gmail.com");                // ✅ change to YOUR inbox
-        message.setSubject("New Coding Test Submission from " + submission.getName());
+        Email from = new Email("no-reply@neopal.tech"); // any placeholder "from"
+        String subject = "New Coding Test Submission from " + submission.getName();
+        Email to = new Email("adarshkeste153@gmail.com"); // ✅ your inbox
 
         StringBuilder body = new StringBuilder();
         body.append("Student Name: ").append(submission.getName()).append("\n");
@@ -27,7 +32,19 @@ public class EmailService {
                 .append(entry.getValue()).append("\n\n");
         }
 
-        message.setText(body.toString());
-        mailSender.send(message);
+        Content content = new Content("text/plain", body.toString());
+        Mail mail = new Mail(from, subject, to, content);
+
+        SendGrid sg = new SendGrid(apiKey);
+        Request request = new Request();
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sg.api(request);
+            System.out.println("SendGrid response code: " + response.getStatusCode());
+        } catch (IOException ex) {
+            System.err.println("SendGrid send failed: " + ex.getMessage());
+        }
     }
 }
