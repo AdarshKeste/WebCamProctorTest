@@ -18,7 +18,7 @@ public class EmailService {
     private String apiKey;
 
     public void sendSubmission(TestSubmission submission) {
-        Email from = new Email("no-reply@neopal.tech"); // any placeholder "from"
+        Email from = new Email("adarshkeste153@gmail.com"); // any placeholder "from"
         String subject = "New Coding Test Submission from " + submission.getName();
         Email to = new Email("adarshkeste153@gmail.com"); // ✅ your inbox
 
